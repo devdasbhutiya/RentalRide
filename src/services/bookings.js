@@ -127,14 +127,29 @@ export const completeBooking = async (bookingId) => {
 // Check if dates overlap with existing bookings
 export const checkAvailability = async (vehicleId, startDate, endDate) => {
     try {
+        console.log('🔍 Checking availability for vehicle:', vehicleId);
+        console.log('📅 Requested dates:', startDate, 'to', endDate);
+
         const { bookings, error } = await getVehicleBookings(vehicleId);
 
-        if (error) return { available: false, error };
+        if (error) {
+            console.error('❌ Error fetching vehicle bookings:', error);
+            return { available: false, error };
+        }
+
+        console.log(`📋 Found ${bookings.length} total bookings for this vehicle`);
 
         // Filter only confirmed or pending bookings
         const activeBookings = bookings.filter(
             b => b.status === 'confirmed' || b.status === 'pending'
         );
+
+        console.log(`✅ ${activeBookings.length} active bookings (confirmed/pending)`);
+
+        if (activeBookings.length === 0) {
+            console.log('✅ No active bookings - dates are available!');
+            return { available: true, error: null };
+        }
 
         // Check for overlaps
         const start = new Date(startDate);
@@ -144,6 +159,8 @@ export const checkAvailability = async (vehicleId, startDate, endDate) => {
             const bookingStart = booking.startDate.toDate ? booking.startDate.toDate() : new Date(booking.startDate);
             const bookingEnd = booking.endDate.toDate ? booking.endDate.toDate() : new Date(booking.endDate);
 
+            console.log(`🔍 Checking against booking: ${bookingStart.toDateString()} to ${bookingEnd.toDateString()} (${booking.status})`);
+
             // Check if dates overlap
             if (start <= bookingEnd && end >= bookingStart) {
                 console.log('❌ CONFLICT! Dates overlap with existing booking from', bookingStart.toDateString(), 'to', bookingEnd.toDateString());
@@ -151,8 +168,10 @@ export const checkAvailability = async (vehicleId, startDate, endDate) => {
             }
         }
 
+        console.log('✅ No conflicts found - dates are available!');
         return { available: true, error: null };
     } catch (error) {
+        console.error('❌ Exception in checkAvailability:', error);
         return { available: false, error: error.message };
     }
 };

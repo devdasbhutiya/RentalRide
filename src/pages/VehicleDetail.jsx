@@ -25,11 +25,27 @@ const VehicleDetail = () => {
 
     const loadVehicle = async () => {
         setLoading(true);
+        setError(''); // Clear previous errors
+
+        // Validate vehicle ID
+        if (!id || id === 'undefined' || id === 'null') {
+            console.error('❌ Invalid vehicle ID:', id);
+            setError('Invalid vehicle ID. Please check the URL.');
+            setLoading(false);
+            return;
+        }
+
+        console.log('🔍 Fetching vehicle with ID:', id);
         const { vehicle: data, error: fetchError } = await getVehicleById(id);
 
         if (fetchError) {
+            console.error('❌ Error fetching vehicle:', fetchError);
             setError(fetchError);
+        } else if (!data) {
+            console.error('❌ Vehicle not found for ID:', id);
+            setError('Vehicle not found. It may have been removed by the owner.');
         } else {
+            console.log('✅ Vehicle loaded successfully:', data.title);
             setVehicle(data);
         }
         setLoading(false);
@@ -45,6 +61,9 @@ const VehicleDetail = () => {
 
     const handleBookingConfirm = async (bookingData) => {
         setBookingLoading(true);
+        setError(''); // Clear previous errors
+
+        console.log('📅 Checking availability for dates:', bookingData.startDate, 'to', bookingData.endDate);
 
         // Check availability first
         const { available, error: availError } = await checkAvailability(
@@ -54,17 +73,23 @@ const VehicleDetail = () => {
         );
 
         if (availError) {
-            setError(availError);
+            console.error('❌ Error checking availability:', availError);
+            setError(`Error checking availability: ${availError}`);
             setBookingLoading(false);
+            setTimeout(() => setError(''), 5000); // Clear error after 5 seconds
             return;
         }
 
         if (!available) {
+            console.warn('⚠️ Dates conflict with existing booking');
             setError('❌ These dates are not available - they conflict with an existing booking. Please choose different dates.');
             setBookingLoading(false);
             setShowBookingModal(false);
+            setTimeout(() => setError(''), 8000); // Clear error after 8 seconds
             return;
         }
+
+        console.log('✅ Dates are available, creating booking...');
 
         // Create booking
         const { error: bookingError } = await createBooking({
@@ -85,10 +110,13 @@ const VehicleDetail = () => {
         setBookingLoading(false);
 
         if (bookingError) {
-            setError(bookingError);
+            console.error('❌ Error creating booking:', bookingError);
+            setError(`Failed to create booking: ${bookingError}`);
+            setTimeout(() => setError(''), 5000); // Clear error after 5 seconds
             return;
         }
 
+        console.log('✅ Booking created successfully!');
         setShowBookingModal(false);
         setBookingSuccess(true);
 
