@@ -23,10 +23,15 @@ const MyListings = () => {
 
         setLoading(true);
 
+        console.log('Loading data for user:', user.uid);
+
         const [vehiclesResult, bookingsResult] = await Promise.all([
             getUserVehicles(user.uid),
             getOwnerBookings(user.uid)
         ]);
+
+        console.log('Vehicles result:', vehiclesResult);
+        console.log('Bookings result:', bookingsResult);
 
         if (vehiclesResult.error) {
             setError(vehiclesResult.error);
@@ -34,7 +39,11 @@ const MyListings = () => {
             setVehicles(vehiclesResult.vehicles);
         }
 
-        if (!bookingsResult.error) {
+        if (bookingsResult.error) {
+            console.error('Bookings error:', bookingsResult.error);
+            setError(bookingsResult.error);
+        } else {
+            console.log('Bookings loaded:', bookingsResult.bookings.length);
             setBookings(bookingsResult.bookings);
         }
 
@@ -173,6 +182,9 @@ const MyListings = () => {
                                         <div className="listing-actions">
                                             <Link to={`/vehicle/${vehicle.id}`} className="btn btn-sm btn-outline">
                                                 <FiEye /> View
+                                            </Link>
+                                            <Link to={`/edit-vehicle/${vehicle.id}`} className="btn btn-sm btn-primary">
+                                                <FiEdit2 /> Edit
                                             </Link>
                                             <button
                                                 className={`btn btn-sm ${vehicle.available ? 'btn-warning' : 'btn-success'}`}

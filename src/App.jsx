@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Browse from './pages/Browse';
 import VehicleDetail from './pages/VehicleDetail';
 import AddVehicle from './pages/AddVehicle';
+import EditVehicle from './pages/EditVehicle';
 import MyListings from './pages/MyListings';
 import MyBookings from './pages/MyBookings';
 import Profile from './pages/Profile';
@@ -28,6 +29,7 @@ function App() {
               <Route path="/browse" element={<Browse />} />
               <Route path="/vehicle/:id" element={<VehicleDetail />} />
               <Route path="/add-vehicle" element={<ProtectedRoute><AddVehicle /></ProtectedRoute>} />
+              <Route path="/edit-vehicle/:id" element={<ProtectedRoute><EditVehicle /></ProtectedRoute>} />
               <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
               <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

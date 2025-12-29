@@ -53,6 +53,8 @@ export const getUserBookings = async (userId) => {
 // Get bookings for owner's vehicles
 export const getOwnerBookings = async (ownerId) => {
     try {
+        console.log('Fetching bookings for ownerId:', ownerId);
+
         const q = query(
             collection(db, BOOKINGS_COLLECTION),
             where('ownerId', '==', ownerId),
@@ -60,13 +62,17 @@ export const getOwnerBookings = async (ownerId) => {
         );
 
         const querySnapshot = await getDocs(q);
+        console.log('Query snapshot size:', querySnapshot.size);
+
         const bookings = querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
 
+        console.log('Owner bookings retrieved:', bookings);
         return { bookings, error: null };
     } catch (error) {
+        console.error('Error fetching owner bookings:', error);
         return { bookings: [], error: error.message };
     }
 };

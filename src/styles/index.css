@@ -1520,6 +1520,19 @@ select {
     font-size: 0.75rem;
 }
 
+.new-badge {
+    position: absolute;
+    bottom: 0.25rem;
+    left: 0.25rem;
+    background: var(--success);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+
 .upload-btn {
     width: 100px;
     height: 100px;
