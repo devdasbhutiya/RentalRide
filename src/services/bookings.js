@@ -146,6 +146,7 @@ export const checkAvailability = async (vehicleId, startDate, endDate) => {
 
             // Check if dates overlap
             if (start <= bookingEnd && end >= bookingStart) {
+                console.log('❌ CONFLICT! Dates overlap with existing booking from', bookingStart.toDateString(), 'to', bookingEnd.toDateString());
                 return { available: false, error: null };
             }
         }

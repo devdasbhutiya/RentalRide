@@ -43,9 +43,9 @@ const Footer = () => {
                 <div className="footer-section">
                     <h4>Contact Us</h4>
                     <ul className="footer-contact">
-                        <li><FiMail /> support@rentride.com</li>
-                        <li><FiPhone /> +1 (555) 123-4567</li>
-                        <li><FiMapPin /> 123 Rental Street, City</li>
+                        <li><FiMail /> hirenrajodiya2121@gmail.com</li>
+                        <li><FiPhone /> +91 8140503644</li>
+                        <li><FiMapPin /> 1 samadhan society Ahmedabad</li>
                     </ul>
                 </div>
             </div>

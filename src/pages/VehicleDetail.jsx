@@ -60,8 +60,9 @@ const VehicleDetail = () => {
         }
 
         if (!available) {
-            setError('Vehicle is not available for selected dates');
+            setError('❌ These dates are not available - they conflict with an existing booking. Please choose different dates.');
             setBookingLoading(false);
+            setShowBookingModal(false);
             return;
         }
 
@@ -149,6 +150,12 @@ const VehicleDetail = () => {
                         <h2>Booking Successful!</h2>
                         <p>Redirecting to your bookings...</p>
                     </div>
+                </div>
+            )}
+
+            {error && (
+                <div className="alert alert-error" style={{ margin: '2rem auto', maxWidth: '800px' }}>
+                    {error}
                 </div>
             )}
 
