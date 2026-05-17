@@ -14,6 +14,7 @@ import MyListings from './pages/MyListings';
 import MyBookings from './pages/MyBookings';
 import Profile from './pages/Profile';
 import './styles/index.css';
+import './styles/modal.css';
 
 function App() {
   return (

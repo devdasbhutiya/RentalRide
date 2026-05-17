@@ -18,8 +18,8 @@ const BOOKINGS_COLLECTION = 'bookings';
 export const createBooking = async (bookingData) => {
     try {
         const docRef = await addDoc(collection(db, BOOKINGS_COLLECTION), {
+            status: 'pending', // Default status, can be overridden by bookingData
             ...bookingData,
-            status: 'pending',
             createdAt: serverTimestamp()
         });
 
@@ -34,8 +34,7 @@ export const getUserBookings = async (userId) => {
     try {
         const q = query(
             collection(db, BOOKINGS_COLLECTION),
-            where('renterId', '==', userId),
-            orderBy('createdAt', 'desc')
+            where('renterId', '==', userId)
         );
 
         const querySnapshot = await getDocs(q);
@@ -43,6 +42,13 @@ export const getUserBookings = async (userId) => {
             id: doc.id,
             ...doc.data()
         }));
+
+        // Client-side sort by createdAt descending
+        bookings.sort((a, b) => {
+            const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+            const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+            return timeB - timeA;
+        });
 
         return { bookings, error: null };
     } catch (error) {
@@ -57,8 +63,7 @@ export const getOwnerBookings = async (ownerId) => {
 
         const q = query(
             collection(db, BOOKINGS_COLLECTION),
-            where('ownerId', '==', ownerId),
-            orderBy('createdAt', 'desc')
+            where('ownerId', '==', ownerId)
         );
 
         const querySnapshot = await getDocs(q);
@@ -68,6 +73,13 @@ export const getOwnerBookings = async (ownerId) => {
             id: doc.id,
             ...doc.data()
         }));
+
+        // Client-side sort by createdAt descending
+        bookings.sort((a, b) => {
+            const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+            const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+            return timeB - timeA;
+        });
 
         console.log('Owner bookings retrieved:', bookings);
         return { bookings, error: null };
@@ -82,8 +94,7 @@ export const getVehicleBookings = async (vehicleId) => {
     try {
         const q = query(
             collection(db, BOOKINGS_COLLECTION),
-            where('vehicleId', '==', vehicleId),
-            orderBy('startDate', 'asc')
+            where('vehicleId', '==', vehicleId)
         );
 
         const querySnapshot = await getDocs(q);
@@ -91,6 +102,9 @@ export const getVehicleBookings = async (vehicleId) => {
             id: doc.id,
             ...doc.data()
         }));
+
+        // Client-side sort by startDate ascending
+        bookings.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
         return { bookings, error: null };
     } catch (error) {

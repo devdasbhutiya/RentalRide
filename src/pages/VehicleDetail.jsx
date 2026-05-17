@@ -6,6 +6,16 @@ import { useAuth } from '../context/AuthContext';
 import BookingModal from '../components/BookingModal';
 import { FiMapPin, FiUser, FiCalendar, FiCheck, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
+const loadScript = (src) => {
+    return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
+
 const VehicleDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -89,41 +99,85 @@ const VehicleDetail = () => {
             return;
         }
 
-        console.log('✅ Dates are available, creating booking...');
+        console.log('✅ Dates are available, initiating Razorpay checkout...');
 
-        // Create booking
-        const { error: bookingError } = await createBooking({
-            vehicleId: id,
-            vehicleTitle: vehicle.title,
-            vehicleImage: vehicle.images?.[0] || '',
-            renterId: user.uid,
-            renterName: userProfile?.name || user.displayName || 'Unknown',
-            ownerId: vehicle.ownerId,
-            ownerName: vehicle.ownerName,
-            startDate: bookingData.startDate,
-            endDate: bookingData.endDate,
-            totalDays: bookingData.totalDays,
-            totalPrice: bookingData.totalPrice,
-            pricePerDay: vehicle.pricePerDay
-        });
+        const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
 
-        setBookingLoading(false);
-
-        if (bookingError) {
-            console.error('❌ Error creating booking:', bookingError);
-            setError(`Failed to create booking: ${bookingError}`);
-            setTimeout(() => setError(''), 5000); // Clear error after 5 seconds
+        if (!res) {
+            setError('Razorpay SDK failed to load. Are you online?');
+            setBookingLoading(false);
             return;
         }
 
-        console.log('✅ Booking created successfully!');
-        setShowBookingModal(false);
-        setBookingSuccess(true);
+        // Setup Razorpay options
+        const amountInPaise = bookingData.totalPrice * 100;
+        const options = {
+            key: 'rzp_test_SqU3iPDRTL2mEp', // Replace with your actual Razorpay Test Key ID
+            amount: amountInPaise.toString(),
+            currency: 'INR',
+            name: 'Vehicle Rental',
+            description: `Booking for ${vehicle.title}`,
+            image: vehicle.images?.[0] || 'https://example.com/your_logo',
+            handler: async function (response) {
+                // On success, save the booking
+                const { error: bookingError } = await createBooking({
+                    vehicleId: id,
+                    vehicleTitle: vehicle.title,
+                    vehicleImage: vehicle.images?.[0] || '',
+                    renterId: user.uid,
+                    renterName: userProfile?.name || user.displayName || 'Unknown',
+                    ownerId: vehicle.ownerId,
+                    ownerName: vehicle.ownerName,
+                    startDate: bookingData.startDate,
+                    endDate: bookingData.endDate,
+                    totalDays: bookingData.totalDays,
+                    totalPrice: bookingData.totalPrice,
+                    pricePerDay: vehicle.pricePerDay,
+                    paymentId: response.razorpay_payment_id,
+                    status: 'confirmed', // Razorpay was successful
+                });
 
-        // Redirect to bookings after 2 seconds
-        setTimeout(() => {
-            navigate('/my-bookings');
-        }, 2000);
+                setBookingLoading(false);
+
+                if (bookingError) {
+                    console.error('❌ Error creating booking:', bookingError);
+                    setError(`Payment successful but failed to create booking: ${bookingError}`);
+                    setTimeout(() => setError(''), 5000); // Clear error after 5 seconds
+                    return;
+                }
+
+                console.log('✅ Booking created successfully!');
+                setShowBookingModal(false);
+                setBookingSuccess(true);
+
+                // Redirect to bookings after 2 seconds
+                setTimeout(() => {
+                    navigate('/my-bookings');
+                }, 2000);
+            },
+            prefill: {
+                name: userProfile?.name || user.displayName || '',
+                email: userProfile?.email || user.email || '',
+                contact: userProfile?.phone || ''
+            },
+            theme: {
+                color: '#3399cc'
+            },
+            modal: {
+                ondismiss: function() {
+                    setBookingLoading(false);
+                    console.log('Checkout form closed');
+                }
+            }
+        };
+
+        const paymentObject = new window.Razorpay(options);
+        paymentObject.on('payment.failed', function (response) {
+            console.error('Payment Failed:', response.error);
+            setError(`Payment failed: ${response.error.description}`);
+            setBookingLoading(false);
+        });
+        paymentObject.open();
     };
 
     const nextImage = () => {
